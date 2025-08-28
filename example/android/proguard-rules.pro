@@ -1,0 +1,4 @@
+-keep class com.mapxus.positioning.** {*;}
+-dontwarn com.mapxus.positioning.**
+-keep class com.mapxus.map.auth.** {*;}
+-dontwarn com.mapxus.map.auth.**

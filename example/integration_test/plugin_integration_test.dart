@@ -1,0 +1,36 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('MapxusPositioning integration test', (tester) async {
+    // Initialize positioning client
+    final initResult = await MapxusPositioning.init(
+      'YOUR_APP_ID',
+      'YOUR_SECRET',
+    );
+    expect(initResult, true);
+
+    // Start positioning
+    final startResult = await MapxusPositioning.start();
+    expect(startResult, true);
+
+    // Listen to stream for a few events
+    final events = <dynamic>[];
+    final subscription = MapxusPositioning.positionStream.listen(events.add);
+
+    // Wait for some events
+    await Future.delayed(Duration(seconds: 5));
+
+    // Ensure at least one event received
+    expect(events.isNotEmpty, true);
+
+    // Stop positioning
+    final stopResult = await MapxusPositioning.stop();
+    expect(stopResult, true);
+
+    await subscription.cancel();
+  });
+}
