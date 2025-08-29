@@ -29,9 +29,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initializeMapxus() async {
     try {
       // Replace with your actual Mapxus credentials
+      // Get these from https://developer.mapxus.com/
       final bool? result = await MapxusPositioning.init(
-        'YOUR_APP_ID',
-        'YOUR_SECRET',
+        'YOUR_MAPXUS_APP_ID',
+        'YOUR_MAPXUS_SECRET',
       );
 
       if (mounted) {

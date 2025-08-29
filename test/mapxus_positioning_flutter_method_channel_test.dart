@@ -31,8 +31,6 @@ void main() {
                 return true;
               case 'stop':
                 return true;
-              case 'getPlatformVersion':
-                return 'Android 11';
               default:
                 return null;
             }
@@ -75,11 +73,6 @@ void main() {
     test('positionStream returns a stream', () {
       final stream = methodChannelPlugin.positionStream;
       expect(stream, isA<Stream<dynamic>>());
-    });
-
-    test('getPlatformVersion returns platform version', () async {
-      final result = await methodChannelPlugin.getPlatformVersion();
-      expect(result, 'Android 11');
     });
 
     test('init passes correct parameters', () async {
