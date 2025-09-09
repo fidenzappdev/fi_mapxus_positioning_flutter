@@ -46,13 +46,4 @@ class MethodChannelMapxusPositioningFlutter
   Stream<dynamic> get positionStream {
     return eventChannel.receiveBroadcastStream();
   }
-
-  @override
-  Future<String?> getPlatformVersion() async {
-    // NOTE: This will only work if you implement "getPlatformVersion" in Java.
-    final version = await methodChannel.invokeMethod<String>(
-      'getPlatformVersion',
-    );
-    return version;
-  }
 }
