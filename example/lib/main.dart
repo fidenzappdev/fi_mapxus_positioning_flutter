@@ -16,7 +16,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
   bool _isInitialized = false;
   bool _isPositioning = false;
   List<String> _positionEvents = [];
@@ -100,7 +99,6 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Running on: $_platformVersion'),
               const SizedBox(height: 20),
 
               // Initialization status

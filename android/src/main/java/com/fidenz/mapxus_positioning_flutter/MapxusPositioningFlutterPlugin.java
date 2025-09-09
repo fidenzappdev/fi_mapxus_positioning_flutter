@@ -65,11 +65,14 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
 
                             @Override
                             public void onLocationChange(MapxusLocation location) {
+                                // Currently sending: latitude, longitude, accuracy, floor, buildingId
                                 // send location data back to Flutter
                                 events.success("LOCATION:" +
                                         location.getLatitude() + "," +
                                         location.getLongitude() + "," +
-                                        location.getAccuracy());
+                                        location.getAccuracy() + "," +
+                                        location.getBuildingId());
+                                
                             }
                         });
                     }
