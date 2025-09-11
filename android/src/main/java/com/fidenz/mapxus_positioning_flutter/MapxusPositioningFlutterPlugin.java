@@ -30,6 +30,7 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
     private Context context;
     private Activity activity;
     private MapxusPositioningClient positioningClient;
+    private MapxusPositioningListener positioningListener;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -50,7 +51,7 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
                 eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
                     @Override
                     public void onListen(Object args, EventChannel.EventSink events) {
-                        positioningClient.addPositioningListener(new MapxusPositioningListener() {
+                        positioningListener = new MapxusPositioningListener() {
                             @Override
                             public void onStateChange(PositioningState state) {
                                 try {
@@ -113,32 +114,56 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
                                     events.error("JSON_ERROR", "Failed to create location JSON", e.getMessage());
                                 }
                             }
-                        });
+                        };
+                        positioningClient.addPositioningListener(positioningListener);
                     }
 
                     @Override
-                    public void onCancel(Object args) {}
+                    public void onCancel(Object args) {
+                        if (positioningClient != null && positioningListener != null) {
+                            positioningClient.removePositioningListener(positioningListener);
+                            positioningListener = null;
+                        }
+                    }
                 });
                 result.success(true);
                 break;
 
             case "start":
-                positioningClient.start();
-                result.success(true);
+                if (positioningClient != null) {
+                    positioningClient.start();
+                    result.success(true);
+                } else {
+                    result.error("NOT_INITIALIZED", "Positioning client not initialized", null);
+                }
                 break;
 
             case "pause":
-                positioningClient.pause();
-                result.success(true);
+                if (positioningClient != null) {
+                    positioningClient.pause();
+                    result.success(true);
+                } else {
+                    result.error("NOT_INITIALIZED", "Positioning client not initialized", null);
+                }
                 break;
 
             case "resume":
-                positioningClient.resume();
-                result.success(true);
+                if (positioningClient != null) {
+                    positioningClient.resume();
+                    result.success(true);
+                } else {
+                    result.error("NOT_INITIALIZED", "Positioning client not initialized", null);
+                }
                 break;
 
             case "stop":
-                positioningClient.stop();
+                if (positioningClient != null) {
+                    positioningClient.stop();
+                    if (positioningListener != null) {
+                        positioningClient.removePositioningListener(positioningListener);
+                        positioningListener = null;
+                    }
+                }
                 result.success(true);
                 break;
 
@@ -157,5 +182,13 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
     @Override public void onDetachedFromActivity() {}
     @Override public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
+        if (positioningClient != null && positioningListener != null) {
+            positioningClient.removePositioningListener(positioningListener);
+            positioningListener = null;
+        }
+        if (positioningClient != null) {
+            positioningClient.stop();
+            positioningClient = null;
+        }
     }
 }
