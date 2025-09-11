@@ -19,18 +19,24 @@ void main() {
 
     // Listen to stream for a few events
     final events = <dynamic>[];
+    final typedEvents = <PositioningEvent>[];
     final subscription = MapxusPositioning.positionStream.listen(events.add);
+    final typedSubscription = MapxusPositioning.eventStream.listen(
+      typedEvents.add,
+    );
 
     // Wait for some events
     await Future.delayed(Duration(seconds: 5));
 
     // Ensure at least one event received
     expect(events.isNotEmpty, true);
+    expect(typedEvents.isNotEmpty, true);
 
     // Stop positioning
     final stopResult = await MapxusPositioning.stop();
     expect(stopResult, true);
 
     await subscription.cancel();
+    await typedSubscription.cancel();
   });
 }

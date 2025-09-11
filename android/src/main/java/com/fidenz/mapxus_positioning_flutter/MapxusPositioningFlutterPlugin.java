@@ -20,6 +20,9 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
     private MethodChannel channel;
@@ -50,29 +53,65 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
                         positioningClient.addPositioningListener(new MapxusPositioningListener() {
                             @Override
                             public void onStateChange(PositioningState state) {
-                                events.success("STATE:" + state.name());
+                                try {
+                                    JSONObject stateEvent = new JSONObject();
+                                    stateEvent.put("type", "state");
+                                    stateEvent.put("state", state.name());
+                                    events.success(stateEvent.toString());
+                                } catch (JSONException e) {
+                                    events.error("JSON_ERROR", "Failed to create state JSON", e.getMessage());
+                                }
                             }
 
                             @Override
                             public void onError(ErrorInfo errorInfo) {
-                                events.error("POSITIONING_ERROR", errorInfo.getErrorMessage(), null);
+                                try {
+                                    JSONObject errorEvent = new JSONObject();
+                                    errorEvent.put("type", "error");
+                                    errorEvent.put("code", errorInfo.getErrorCode());
+                                    errorEvent.put("message", errorInfo.getErrorMessage());
+                                    events.success(errorEvent.toString());
+                                } catch (JSONException e) {
+                                    events.error("JSON_ERROR", "Failed to create error JSON", e.getMessage());
+                                }
                             }
 
                             @Override
                             public void onOrientationChange(float orientation, int accuracy) {
-                                // optional: send orientation
+                                try {
+                                    JSONObject orientationEvent = new JSONObject();
+                                    orientationEvent.put("type", "orientation");
+                                    orientationEvent.put("orientation", orientation);
+                                    orientationEvent.put("accuracy", accuracy);
+                                    events.success(orientationEvent.toString());
+                                } catch (JSONException e) {
+                                    events.error("JSON_ERROR", "Failed to create orientation JSON", e.getMessage());
+                                }
                             }
 
                             @Override
                             public void onLocationChange(MapxusLocation location) {
-                                // Currently sending: latitude, longitude, accuracy, floor, buildingId
-                                // send location data back to Flutter
-                                events.success("LOCATION:" +
-                                        location.getLatitude() + "," +
-                                        location.getLongitude() + "," +
-                                        location.getAccuracy() + "," +
-                                        location.getBuildingId());
-                                
+                                try {
+                                    JSONObject locationEvent = new JSONObject();
+                                    locationEvent.put("type", "location");
+                                    locationEvent.put("latitude", location.getLatitude());
+                                    locationEvent.put("longitude", location.getLongitude());
+                                    locationEvent.put("accuracy", location.getAccuracy());
+                                    locationEvent.put("venueId", location.getVenueId());
+                                    locationEvent.put("buildingId", location.getBuildingId());
+                                    
+                                    // Handle potential null floor information
+                                    String floorCode = null;
+                                    if (location.getMapxusFloor() != null) {
+                                        floorCode = location.getMapxusFloor().getCode();
+                                    }
+                                    locationEvent.put("floor", floorCode);
+                                    
+                                    locationEvent.put("timestamp", System.currentTimeMillis());
+                                    events.success(locationEvent.toString());
+                                } catch (JSONException e) {
+                                    events.error("JSON_ERROR", "Failed to create location JSON", e.getMessage());
+                                }
                             }
                         });
                     }

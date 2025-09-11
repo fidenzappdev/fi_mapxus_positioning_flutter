@@ -5,6 +5,8 @@
 
 A Flutter plugin for Mapxus indoor positioning services. This plugin provides real-time location tracking and positioning state management for indoor navigation applications.
 
+> **Latest Updates (v1.0.0)**: Enhanced with typed event system, JSON format support, orientation tracking, and multiple filtered stream options while maintaining backward compatibility.
+
 ## Features
 
 - 🏢 **Indoor Positioning**: Accurate indoor location tracking using Mapxus positioning technology
@@ -12,6 +14,10 @@ A Flutter plugin for Mapxus indoor positioning services. This plugin provides re
 - 🎛️ **Lifecycle Management**: Full control over positioning with start, pause, resume, and stop operations
 - 🔧 **Easy Integration**: Simple API for quick integration into Flutter applications
 - 📱 **Android Support**: Native Android implementation with Mapxus SDK 2.3.1
+- 🎯 **Typed Events**: Structured event system with dedicated objects for different event types
+- 📊 **JSON Format**: Modern JSON-based event structure for better data handling
+- 🧭 **Orientation Support**: Device orientation changes with accuracy information
+- 🔄 **Backward Compatible**: Legacy string format still supported alongside new typed events
 
 ## Installation
 
@@ -95,23 +101,50 @@ class _PositioningExampleState extends State<PositioningExample> {
   }
 
   void _listenToPositionUpdates() {
+    // Option 1: Listen to raw stream (legacy format)
     _positionSubscription = MapxusPositioning.positionStream.listen(
       (data) {
-        if (data.toString().startsWith('STATE:')) {
-          print('Positioning state: ${data.toString().substring(6)}');
-        } else if (data.toString().startsWith('LOCATION:')) {
-          final locationData = data.toString().substring(9).split(',');
-          final latitude = double.parse(locationData[0]);
-          final longitude = double.parse(locationData[1]);
-          final accuracy = double.parse(locationData[2]);
-
-          print('Location: $latitude, $longitude (accuracy: $accuracy)');
-        }
+        print('Raw event: $data');
       },
       onError: (error) {
         print('Position stream error: $error');
       },
     );
+
+    // Option 2: Listen to typed events (recommended)
+    _positionSubscription = MapxusPositioning.eventStream.listen(
+      (event) {
+        if (event is PositioningLocationEvent) {
+          print('Location: ${event.latitude}, ${event.longitude}');
+          print('Accuracy: ${event.accuracy}m');
+          print('Venue ID: ${event.venueId}');
+          print('Building ID: ${event.buildingId}');
+          print('Floor: ${event.floor}');
+        } else if (event is PositioningStateEvent) {
+          print('State changed to: ${event.state}');
+        } else if (event is PositioningErrorEvent) {
+          print('Error: ${event.message} (Code: ${event.code})');
+        } else if (event is PositioningOrientationEvent) {
+          print('Orientation: ${event.orientation}° (accuracy: ${event.accuracy})');
+        }
+      },
+      onError: (error) {
+        print('Event stream error: $error');
+      },
+    );
+
+    // Option 3: Listen to specific event types only
+    MapxusPositioning.locationStream.listen((location) {
+      print('New location: ${location.latitude}, ${location.longitude}');
+    });
+
+    MapxusPositioning.stateStream.listen((state) {
+      print('State changed: ${state.state}');
+    });
+
+    MapxusPositioning.errorStream.listen((error) {
+      print('Positioning error: ${error.message}');
+    });
   }
 
   Future<void> _startPositioning() async {
@@ -175,6 +208,8 @@ class _PositioningExampleState extends State<PositioningExample> {
 
 ### Methods
 
+All methods return `Future<bool?>` where `true` indicates success.
+
 #### `MapxusPositioning.init(String appId, String secret)`
 
 Initializes the positioning client with your Mapxus credentials.
@@ -210,14 +245,79 @@ Stops the positioning service completely.
 
 ### Streams
 
+The plugin provides multiple stream options for receiving positioning updates, from raw data to filtered typed events.
+
 #### `MapxusPositioning.positionStream`
 
-A stream that provides real-time positioning updates.
+A stream that provides real-time positioning updates in raw format (for backward compatibility).
 
-- **Stream data types:**
-  - `STATE:` + state name - Positioning state changes
-  - `LOCATION:` + lat,lng,accuracy - Location updates
-  - Error events for positioning failures
+#### `MapxusPositioning.eventStream`
+
+A stream that provides typed positioning events as objects. **This is the recommended approach for new implementations.**
+
+- **Event types:**
+  - `PositioningLocationEvent` - Location updates with lat/lng, accuracy, venue info
+  - `PositioningStateEvent` - Positioning state changes
+  - `PositioningErrorEvent` - Error events with code and message
+  - `PositioningOrientationEvent` - Device orientation changes
+
+#### `MapxusPositioning.locationStream`
+
+A filtered stream that only emits `PositioningLocationEvent` objects.
+
+#### `MapxusPositioning.stateStream`
+
+A filtered stream that only emits `PositioningStateEvent` objects.
+
+#### `MapxusPositioning.errorStream`
+
+A filtered stream that only emits `PositioningErrorEvent` objects.
+
+#### `MapxusPositioning.orientationStream`
+
+A filtered stream that only emits `PositioningOrientationEvent` objects.
+
+### Event Objects
+
+#### `PositioningLocationEvent`
+
+```dart
+class PositioningLocationEvent {
+  final double latitude;
+  final double longitude;
+  final double accuracy;      // Accuracy in meters
+  final String? venueId;      // Mapxus venue identifier
+  final String? buildingId;   // Mapxus building identifier
+  final String? floor;        // Floor level
+  final int timestamp;        // Event timestamp
+}
+```
+
+#### `PositioningStateEvent`
+
+```dart
+class PositioningStateEvent {
+  final String state;         // STOPPED, RUNNING, PAUSED
+}
+```
+
+#### `PositioningErrorEvent`
+
+```dart
+class PositioningErrorEvent {
+  final int code;            // Error code
+  final String message;      // Error description
+}
+```
+
+#### `PositioningOrientationEvent`
+
+```dart
+class PositioningOrientationEvent {
+  final double orientation;   // Orientation in degrees
+  final int accuracy;        // Orientation accuracy level
+}
+```
 
 **Positioning States:**
 
@@ -253,10 +353,11 @@ E/UserRemoteDataSource: mapxus validate appid fail
 Check out the [example app](example/) for a complete implementation showing:
 
 - Initialization with credentials
-- Real-time position tracking
-- State management
-- Error handling
-- UI integration
+- Real-time position tracking with both legacy and typed events
+- State management and lifecycle handling
+- Error handling and user feedback
+- UI integration with live event display
+- Comparison between legacy string format and new typed events
 
 ## Troubleshooting
 
@@ -275,9 +376,15 @@ Check out the [example app](example/) for a complete implementation showing:
    - Ensure Bluetooth and WiFi are enabled
 
 3. **Initialization fails**
+
    - Check internet connectivity
    - Verify Mapxus service status
    - Review Android logs for detailed error messages
+
+4. **Event parsing issues**
+   - Ensure you're using the latest plugin version
+   - Use typed `eventStream` instead of legacy `positionStream` for better error handling
+   - Check that JSON events are properly formatted
 
 ## Platform Support
 
@@ -306,9 +413,9 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ## Support
 
-- 📖 [Documentation](https://github.com/fidenz-dev/mapxus_positioning_flutter/wiki)
-- 🐛 [Issue Tracker](https://github.com/fidenz-dev/mapxus_positioning_flutter/issues)
-- 💬 [Discussions](https://github.com/fidenz-dev/mapxus_positioning_flutter/discussions)
+- 📖 [Documentation](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/wiki)
+- 🐛 [Issue Tracker](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/issues)
+- 💬 [Discussions](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/discussions)
 
 ---
 

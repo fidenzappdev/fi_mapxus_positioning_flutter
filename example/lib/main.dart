@@ -19,6 +19,7 @@ class _MyAppState extends State<MyApp> {
   bool _isInitialized = false;
   bool _isPositioning = false;
   List<String> _positionEvents = [];
+  List<String> _typedEvents = [];
 
   @override
   void initState() {
@@ -58,14 +59,39 @@ class _MyAppState extends State<MyApp> {
         });
       }
 
-      // Listen to position stream
+      // Listen to position stream (legacy format)
       MapxusPositioning.positionStream.listen((position) {
         if (mounted) {
           setState(() {
-            _positionEvents.add('Position: $position');
-            // Keep only last 10 events for display
-            if (_positionEvents.length > 10) {
+            _positionEvents.add('Legacy: $position');
+            // Keep only last 5 events for display
+            if (_positionEvents.length > 5) {
               _positionEvents.removeAt(0);
+            }
+          });
+        }
+      });
+
+      // Listen to typed event stream (new format)
+      MapxusPositioning.eventStream.listen((event) {
+        if (mounted) {
+          setState(() {
+            if (event is PositioningLocationEvent) {
+              _typedEvents.add(
+                'Location: ${event.latitude.toStringAsFixed(6)}, ${event.longitude.toStringAsFixed(6)} (±${event.accuracy.toStringAsFixed(1)}m, floorId: ${event.floor} venueId: ${event.venueId}, buildingId: ${event.buildingId})',
+              );
+            } else if (event is PositioningStateEvent) {
+              _typedEvents.add('State: ${event.state}');
+            } else if (event is PositioningErrorEvent) {
+              _typedEvents.add('Error: ${event.message} (${event.code})');
+            } else if (event is PositioningOrientationEvent) {
+              _typedEvents.add(
+                'Orientation: ${event.orientation.toStringAsFixed(1)}° (accuracy: ${event.accuracy})',
+              );
+            }
+            // Keep only last 5 events for display
+            if (_typedEvents.length > 5) {
+              _typedEvents.removeAt(0);
             }
           });
         }
@@ -131,16 +157,46 @@ class _MyAppState extends State<MyApp> {
 
               const SizedBox(height: 20),
 
-              // Position events
+              // Position events (legacy format)
               const Text(
-                'Position Events:',
+                'Legacy String Events:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Expanded(
+                flex: 1,
                 child: ListView.builder(
                   itemCount: _positionEvents.length,
                   itemBuilder: (context, index) {
-                    return ListTile(title: Text(_positionEvents[index]));
+                    return ListTile(
+                      dense: true,
+                      title: Text(
+                        _positionEvents[index],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const Divider(),
+
+              // Typed events (new format)
+              const Text(
+                'Typed Object Events:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                flex: 1,
+                child: ListView.builder(
+                  itemCount: _typedEvents.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      dense: true,
+                      title: Text(
+                        _typedEvents[index],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
                   },
                 ),
               ),
