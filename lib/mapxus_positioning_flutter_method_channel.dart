@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'mapxus_positioning_flutter_platform_interface.dart';
-import 'src/models/positioning_event.dart';
 
 /// An implementation of [MapxusPositioningFlutterPlatform] that uses method channels.
 class MethodChannelMapxusPositioningFlutter
