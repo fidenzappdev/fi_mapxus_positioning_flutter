@@ -1,9 +1,9 @@
 name: fi_mapxus_positioning_flutter
 description: "A Flutter plugin for Mapxus indoor positioning services. Provides real-time location tracking and positioning state management for indoor navigation applications."
 version: 1.0.0
-homepage: https://github.com/sadeepa-fidenz/mapxus_positioning_flutter
-repository: https://github.com/sadeepa-fidenz/mapxus_positioning_flutter
-issue_tracker: https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/issues
+homepage: https://github.com/fidenzappdev/fi_mapxus_positioning_flutter
+repository: https://github.com/fidenzappdev/fi_mapxus_positioning_flutter
+issue_tracker: https://github.com/fidenzappdev/fi_mapxus_positioning_flutter/issues
 
 environment:
   sdk: ^3.8.1
