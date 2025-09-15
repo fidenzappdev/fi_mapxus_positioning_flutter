@@ -413,9 +413,9 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ## Support
 
-- 📖 [Documentation](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/wiki)
-- 🐛 [Issue Tracker](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/issues)
-- 💬 [Discussions](https://github.com/sadeepa-fidenz/mapxus_positioning_flutter/discussions)
+- 📖 [Documentation](https://github.com/fidenzappdev/fi_mapxus_positioning_flutter/wiki)
+- 🐛 [Issue Tracker](https://github.com/fidenzappdev/fi_mapxus_positioning_flutter/issues)
+- 💬 [Discussions](https://github.com/fidenzappdev/fi_mapxus_positioning_flutter/discussions)
 
 ---
 
