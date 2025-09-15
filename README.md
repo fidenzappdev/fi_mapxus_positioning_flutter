@@ -1,6 +1,6 @@
 # Mapxus Positioning Flutter
 
-[![pub package](https://img.shields.io/pub/v/mapxus_positioning_flutter.svg)](https://pub.dev/packages/mapxus_positioning_flutter)
+[![pub package](https://img.shields.io/pub/v/mapxus_positioning_flutter.svg)](https://pub.dev/packages/fi_mapxus_positioning_flutter)
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](LICENSE)
 
 A Flutter plugin for Mapxus indoor positioning services. This plugin provides real-time location tracking and positioning state management for indoor navigation applications.
