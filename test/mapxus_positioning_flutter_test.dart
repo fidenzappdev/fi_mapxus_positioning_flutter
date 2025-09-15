@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
-import 'package:mapxus_positioning_flutter/mapxus_positioning_flutter_platform_interface.dart';
-import 'package:mapxus_positioning_flutter/src/models/positioning_event.dart';
+import 'package:fi_mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
+import 'package:fi_mapxus_positioning_flutter/mapxus_positioning_flutter_platform_interface.dart';
+import 'package:fi_mapxus_positioning_flutter/src/models/positioning_event.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockMapxusPositioningFlutterPlatform
