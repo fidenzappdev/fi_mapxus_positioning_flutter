@@ -58,6 +58,8 @@ Add the following permissions to your `android/app/src/main/AndroidManifest.xml`
 
 For Android 6.0+, make sure to request location permissions at runtime.
 
+> **ProGuard/R8 Note**: This plugin automatically includes the necessary ProGuard rules for release builds. No additional configuration is required!
+
 ## Usage
 
 ### Basic Implementation
