@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
+import 'package:fi_mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
 
 void main() {
   runApp(const MyApp());
