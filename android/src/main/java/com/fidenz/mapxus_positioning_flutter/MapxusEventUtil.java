@@ -68,10 +68,11 @@ public class MapxusEventUtil {
     /**
      * Helper to send location error event to EventSink
      */
-    public static void sendEventError(EventChannel.EventSink events, String error) {
+    public static void sendEventError(EventChannel.EventSink events, String error, int code) {
         Map<String, Object> event = new HashMap<>();
         event.put("type", "error");
         event.put("message", error);
+        event.put("code", code);
         if (events != null) {
             events.success(event);
         }

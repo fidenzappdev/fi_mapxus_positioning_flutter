@@ -304,7 +304,11 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
         public void onError(ErrorInfo errorInfo) {
             Log.e(TAG, errorInfo.getErrorMessage());
             if (eventSink != null) {
-                MapxusEventUtil.sendEventError(eventSink, errorInfo.getErrorMessage());
+                MapxusEventUtil.sendEventError(
+                        eventSink,
+                        errorInfo.getErrorMessage(),
+                        errorInfo.getErrorCode()
+                );
             }
         }
 

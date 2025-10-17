@@ -79,11 +79,15 @@ class PositioningOrientationEvent extends MapxusEvent {
 
 class MapxusErrorEvent extends MapxusEvent {
   final String message;
+  final int code;
 
-  MapxusErrorEvent({required this.message}) : super('error');
+  MapxusErrorEvent({required this.message, required this.code}) : super('error');
 
   factory MapxusErrorEvent.fromMap(Map<dynamic, dynamic> map) {
-    return MapxusErrorEvent(message: map['message'] ?? '');
+    return MapxusErrorEvent(
+      message: map['message'] ?? '',
+      code: map['code'] ?? ''
+    );
   }
 }
 
