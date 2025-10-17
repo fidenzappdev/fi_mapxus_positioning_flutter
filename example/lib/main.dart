@@ -1,9 +1,9 @@
+import 'package:fi_mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
+import 'package:fi_mapxus_positioning_flutter/models/mapxus_event_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:mapxus_positioning_flutter/mapxus_positioning_flutter.dart';
-import 'package:mapxus_positioning_flutter/models/mapxus_event_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,6 +49,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           break;
         case 'error':
           MapxusErrorEvent stateEvent = event as MapxusErrorEvent;
+          debugPrint("Error > ${stateEvent.message} / Error code > ${stateEvent.code}");
           setState(() {
             lastError = stateEvent.message.toUpperCase();
           });
