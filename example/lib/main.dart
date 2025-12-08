@@ -3,8 +3,6 @@ import 'package:fi_mapxus_positioning_flutter/models/mapxus_event_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
-
 void main() {
   runApp(const MyApp());
 }
@@ -36,7 +34,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       switch(event.type) {
         case 'location':
           MapxusLocationEvent locationEvent = event as MapxusLocationEvent;
-          debugPrint("Location updated > Longitude: ${locationEvent.longitude} | Latitude: ${locationEvent.latitude}");
+          debugPrint("Location updated > ${locationEvent.rawData}");
           setState(() {
             latestLocation = locationEvent;
           });
@@ -49,7 +47,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           break;
         case 'error':
           MapxusErrorEvent stateEvent = event as MapxusErrorEvent;
-          debugPrint("Error > ${stateEvent.message} / Error code > ${stateEvent.code}");
           setState(() {
             lastError = stateEvent.message.toUpperCase();
           });
@@ -98,8 +95,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void init() async {
     await mapxus.init(
-      "6f772bc659464f988cbe8ecb7faa4a5b",
-      "47ae5790d3024f83a81c12e78966427a"
+        "6f772bc659464f988cbe8ecb7faa4a5b",
+        "47ae5790d3024f83a81c12e78966427a"
     );
   }
 
@@ -115,113 +112,123 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                serviceState,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  serviceState,
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 30
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              Text(
-                "Orientation: ${orientation.toString()}  |  Accuracy: ${sensorAccuracy.toString()}",
-                style: TextStyle(color: Colors.black, fontSize: 13),
-              ),
-              SizedBox(height: 15),
-              Text(
-                "Latitude: ${getCoordinates(latestLocation, "lat")}",
-                style: TextStyle(color: Colors.black, fontSize: 20),
-              ),
-              SizedBox(height: 5),
-              Text(
-                "Longitude: ${getCoordinates(latestLocation, "lan")}",
-                style: TextStyle(color: Colors.black, fontSize: 20),
-              ),
-              SizedBox(height: 40),
-              OutlinedButton(
-                child: Text('Initialize'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
+                SizedBox(height: 30),
+                Text(
+                  "Orientation: ${orientation.toString()}  |  Accuracy: ${sensorAccuracy.toString()}",
+                  style: TextStyle(color: Colors.black, fontSize: 13),
                 ),
-                onPressed: () async {
-                  var result = await mapxus.init(
-                      "6f772bc659464f988cbe8ecb7faa4a5b",
-                      "47ae5790d3024f83a81c12e78966427a"
-                  );
-                  if(result.success) {
-                    setState(() {
-                      serviceState = "INITIALIZED";
-                    });
-                  } else {
-                    setState(() {
-                      lastError = result.message;
-                    });
-                  }
-                }
-              ),
-              SizedBox(height: 20,),
-              OutlinedButton(
-                  child: Text('Start'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    await mapxus.start();
-                  }
-              ),
-              SizedBox(height: 20,),
-              OutlinedButton(
-                  child: Text('Pause'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    pause();
-                  }
-              ),
-              SizedBox(height: 20,),
-              OutlinedButton(
-                  child: Text('Resume'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    await mapxus.resume();
-                  }
-              ),
-              SizedBox(height: 20,),
-              OutlinedButton(
-                  child: Text('Check Initialized'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    await mapxus.isInitialized();
-                  }
-              ),
-              SizedBox(height: 20,),
-              OutlinedButton(
-                  child: Text('Stop'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    await mapxus.stop();
-                  }
-              ),
-              SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Text(
-                  "Last Error: ${lastError ?? "No error"}",
-                  style: TextStyle(color: Colors.red),
+                SizedBox(height: 15),
+                Text(
+                  "Latitude: ${getCoordinates(latestLocation, "lat")}",
+                  style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
-              ),
-            ],
-          )
+                SizedBox(height: 5),
+                Text(
+                  "Longitude: ${getCoordinates(latestLocation, "lan")}",
+                  style: TextStyle(color: Colors.black, fontSize: 20),
+                ),
+                if(latestLocation != null) SizedBox(height: 5),
+                if(latestLocation != null) Text(
+                  "Floor: ${latestLocation!.floor}",
+                  style: TextStyle(color: Colors.black, fontSize: 15),
+                ),
+                if(latestLocation != null) SizedBox(height: 5),
+                if(latestLocation != null) Text(
+                  "Raw Data: ${latestLocation!.toMap()}",
+                  style: TextStyle(color: Colors.black, fontSize: 12),
+                ),
+                SizedBox(height: 40),
+                OutlinedButton(
+                    child: Text('Initialize'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      var result = await mapxus.init(
+                          "6f772bc659464f988cbe8ecb7faa4a5b",
+                          "47ae5790d3024f83a81c12e78966427a"
+                      );
+                      if(result.success) {
+                        setState(() {
+                          serviceState = "INITIALIZED";
+                        });
+                      } else {
+                        setState(() {
+                          lastError = result.message;
+                        });
+                      }
+                    }
+                ),
+                SizedBox(height: 20,),
+                OutlinedButton(
+                    child: Text('Start'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      await mapxus.start();
+                    }
+                ),
+                SizedBox(height: 20,),
+                OutlinedButton(
+                    child: Text('Pause'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      pause();
+                    }
+                ),
+                SizedBox(height: 20,),
+                OutlinedButton(
+                    child: Text('Resume'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      await mapxus.resume();
+                    }
+                ),
+                SizedBox(height: 20,),
+                OutlinedButton(
+                    child: Text('Check Initialized'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      await mapxus.isInitialized();
+                    }
+                ),
+                SizedBox(height: 20,),
+                OutlinedButton(
+                    child: Text('Stop'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                    onPressed: () async {
+                      await mapxus.stop();
+                    }
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Text(
+                    "Last Error: ${lastError ?? "No error"}",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            )
         ),
       ),
     );
