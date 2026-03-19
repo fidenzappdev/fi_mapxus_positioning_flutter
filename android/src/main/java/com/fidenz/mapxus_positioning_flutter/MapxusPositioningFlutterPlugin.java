@@ -122,9 +122,25 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
         } else if (call.method.equals("stop")) {
             handleStop(result);
 
+        } else if (call.method.equals("checkSensorStatus")) {
+            handleCheckSensorStatus(result);
+
         } else {
             result.notImplemented();
         }
+    }
+
+    /**
+     * Checks the status of required sensors and returns the status code and a descriptive message.
+     */
+    private void handleCheckSensorStatus(@NonNull MethodChannel.Result result) {
+        int statusCode = SensorUtils.checkSensorStatus(context);
+        String message = SensorUtils.getSensorStatusMessage(statusCode);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("statusCode", statusCode);
+        response.put("message", message);
+        result.success(response);
     }
 
     /**

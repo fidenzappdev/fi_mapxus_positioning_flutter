@@ -1,6 +1,7 @@
 import 'mapxus_positioning_flutter_platform_interface.dart';
 import 'models/mapxus_event_model.dart';
 import 'models/mapxus_method_response_model.dart';
+import 'models/mapxus_sensor_result_model.dart';
 
 /// Singleton wrapper for the MapxusPositioningFlutter plugin.
 ///
@@ -28,6 +29,8 @@ class MapxusPositioningFlutter {
   Future<MapxusMethodResponse> stop() => _platform.stop();
 
   Future<bool> isInitialized() => _platform.isInitialized();
+
+  Future<MapxusSensorResultModel> checkSensorStatus() => _platform.checkSensorStatus();
 
   Stream<MapxusEvent> get events => _platform.events;
 }
