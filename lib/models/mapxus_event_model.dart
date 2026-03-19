@@ -26,6 +26,7 @@ class MapxusLocationEvent extends MapxusEvent {
   final String? buildingId;
   final String? floor;
   final int timestamp;
+  final Map<dynamic, dynamic>? rawData;
 
   MapxusLocationEvent({
     required this.latitude,
@@ -35,6 +36,7 @@ class MapxusLocationEvent extends MapxusEvent {
     this.buildingId,
     this.floor,
     required this.timestamp,
+    this.rawData,
   }) : super('location');
 
   factory MapxusLocationEvent.fromMap(Map<dynamic, dynamic> map) {
@@ -46,7 +48,21 @@ class MapxusLocationEvent extends MapxusEvent {
       buildingId: map['buildingId'],
       floor: map['floor'],
       timestamp: map['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
+      rawData: map
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'latitude': latitude,
+      'longitude': longitude,
+      'accuracy': accuracy,
+      'venueId': venueId,
+      'buildingId': buildingId,
+      'floor': floor,
+      'timestamp': timestamp,
+      'rawData': rawData,
+    };
   }
 }
 
