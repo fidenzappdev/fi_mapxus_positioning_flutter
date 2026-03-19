@@ -3,7 +3,10 @@ import 'package:fi_mapxus_positioning_flutter/models/mapxus_event_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-void main() {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -93,13 +96,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     await mapxus.resume();
   }
 
-  void init() async {
-    await mapxus.init(
-        "6f772bc659464f988cbe8ecb7faa4a5b",
-        "47ae5790d3024f83a81c12e78966427a"
-    );
-  }
-
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
   }
@@ -154,9 +150,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       foregroundColor: Colors.green,
                     ),
                     onPressed: () async {
+                      var sensor = await mapxus.checkSensorStatus();
+                      debugPrint("Sensor > ${sensor.statusCode} | ${sensor.message}");
                       var result = await mapxus.init(
-                          "6f772bc659464f988cbe8ecb7faa4a5b",
-                          "47ae5790d3024f83a81c12e78966427a"
+                        dotenv.env['APP_ID']!,
+                        dotenv.env['SECRET']!
                       );
                       if(result.success) {
                         setState(() {

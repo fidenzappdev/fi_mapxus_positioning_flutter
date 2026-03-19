@@ -2,6 +2,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'mapxus_positioning_flutter_method_channel.dart';
 import 'models/mapxus_event_model.dart';
 import 'models/mapxus_method_response_model.dart';
+import 'models/mapxus_sensor_result_model.dart';
 
 /// Platform interface for MapxusPositioningFlutter.
 ///
@@ -31,5 +32,6 @@ abstract class MapxusPositioningFlutterPlatform extends PlatformInterface {
   Future<MapxusMethodResponse> resume();
   Future<MapxusMethodResponse> stop();
   Future<bool> isInitialized();
+  Future<MapxusSensorResultModel> checkSensorStatus();
   Stream<MapxusEvent> get events;
 }

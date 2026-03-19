@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'mapxus_positioning_flutter_platform_interface.dart';
 import 'models/mapxus_event_model.dart';
 import 'models/mapxus_method_response_model.dart';
+import 'models/mapxus_sensor_result_model.dart';
 
 /// The Android (and default) implementation of the plugin
 /// using Flutter’s [MethodChannel] and [EventChannel].
@@ -124,6 +125,13 @@ class MethodChannelMapxusPositioningFlutter extends MapxusPositioningFlutterPlat
   @override
   Future<bool> isInitialized() async {
     return await _channel.invokeMethod('isInitialized');
+  }
+
+  /// Checks the status of required sensors and returns the status code and a descriptive message.
+  @override
+  Future<MapxusSensorResultModel> checkSensorStatus() async {
+    final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('checkSensorStatus');
+    return MapxusSensorResultModel.fromMap(result!);
   }
 
   /// Listens to event streams from the native side.
