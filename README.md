@@ -25,7 +25,7 @@ Add this plugin to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mapxus_positioning_flutter: ^1.0.6
+  mapxus_positioning_flutter: ^1.0.8
 ```
 
 Then run:

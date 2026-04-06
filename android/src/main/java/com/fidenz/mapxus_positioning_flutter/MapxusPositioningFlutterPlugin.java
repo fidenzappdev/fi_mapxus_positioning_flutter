@@ -1,6 +1,8 @@
 package com.fidenz.mapxus_positioning_flutter;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ProcessLifecycleOwner;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -10,7 +12,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import android.content.Context;
 import android.app.Activity;
-import androidx.lifecycle.LifecycleOwner;
 import io.flutter.plugin.common.EventChannel;
 
 import com.mapxus.positioning.positioning.api.ErrorInfo;
@@ -153,8 +154,12 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
                 String appId = call.argument("appId");
                 String secret = call.argument("secret");
 
+                LifecycleOwner lifecycleOwner = (activity instanceof LifecycleOwner)
+                        ? (LifecycleOwner) activity
+                        : ProcessLifecycleOwner.get();
+
                 positioningClient = MapxusPositioningClient.getInstance(
-                        (LifecycleOwner) activity,
+                        lifecycleOwner,
                         context,
                         appId,
                         secret
