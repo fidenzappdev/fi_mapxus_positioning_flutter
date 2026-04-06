@@ -9,3 +9,7 @@
 ## 1.0.7
 
 * Added the checkSensorStatus method to retrieve the availability status of the required sensors for the Mapxus service.
+
+## 1.0.8
+
+* Setup Foreground service Accessibility.
