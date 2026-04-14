@@ -33,5 +33,24 @@ abstract class MapxusPositioningFlutterPlatform extends PlatformInterface {
   Future<MapxusMethodResponse> stop();
   Future<bool> isInitialized();
   Future<MapxusSensorResultModel> checkSensorStatus();
+  Future<MapxusMethodResponse> startForegroundService({
+    required String appId,
+    required String secret,
+    String notificationTitle,
+    String notificationContent,
+  });
+  Future<MapxusMethodResponse> stopForegroundService();
+
+  /// Returns true if the Android foreground service is currently running.
+  /// Use this on app startup to restore UI state after the app was killed.
+  Future<bool> isForegroundServiceRunning();
+
+  /// Stores the raw Dart callback handles so the Android foreground service
+  /// can start a headless Flutter engine and call the developer's handler.
+  Future<MapxusMethodResponse> setBackgroundHandlerRaw({
+    required int dispatcherHandle,
+    required int userCallbackHandle,
+  });
+
   Stream<MapxusEvent> get events;
 }

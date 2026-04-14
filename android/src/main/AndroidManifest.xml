@@ -7,4 +7,41 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
+    <!-- Required for running a foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required on Android 14+ (API 34+) for foreground services that use location -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Required on Android 13+ (API 33+) to post the foreground notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+        <!--
+            Foreground service for background indoor positioning.
+
+            android:stopWithTask="false"
+              Keeps the service alive when the user swipes the app away from
+              the recent-apps list. Without this, Android kills the service
+              together with the task.
+
+            android:foregroundServiceType="location"
+              Required on Android 14+ (API 34) to access location in a
+              foreground service.
+        -->
+        <service
+            android:name="com.fidenz.mapxus_positioning_flutter.MapxusPositioningForegroundService"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="location" />
+
+        <!--
+            Restart receiver called by AlarmManager if the service is killed by
+            an aggressive OEM battery optimisation.  It calls
+            startForegroundService() which is required on Android 8+ when
+            starting a foreground service from a background context.
+        -->
+        <receiver
+            android:name="com.fidenz.mapxus_positioning_flutter.MapxusServiceRestartReceiver"
+            android:exported="false" />
+    </application>
 </manifest>

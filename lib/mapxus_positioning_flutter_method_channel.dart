@@ -134,6 +134,91 @@ class MethodChannelMapxusPositioningFlutter extends MapxusPositioningFlutterPlat
     return MapxusSensorResultModel.fromMap(result!);
   }
 
+  /// Starts the Android foreground service for background positioning.
+  ///
+  /// This keeps positioning active even after the user closes the app.
+  /// Events are delivered through the same [events] stream.
+  ///
+  /// [appId] and [secret] are your Mapxus credentials.
+  /// [notificationTitle] and [notificationContent] customise the persistent notification.
+  @override
+  Future<MapxusMethodResponse> startForegroundService({
+    required String appId,
+    required String secret,
+    String notificationTitle = 'Mapxus Positioning',
+    String notificationContent = 'Location tracking is active',
+  }) async {
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'startForegroundService',
+        {
+          'appId': appId,
+          'secret': secret,
+          'notificationTitle': notificationTitle,
+          'notificationContent': notificationContent,
+        },
+      );
+      return MapxusMethodResponse.fromMap({
+        'success': result?['success'] ?? false,
+        'message': result?['message'] ?? 'Unknown error',
+      });
+    } catch (e) {
+      return MapxusMethodResponse.fromMap({
+        'success': false,
+        'message': e.toString(),
+      });
+    }
+  }
+
+  /// Stops the Android foreground service and removes the persistent notification.
+  @override
+  Future<MapxusMethodResponse> stopForegroundService() async {
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('stopForegroundService');
+      return MapxusMethodResponse.fromMap({
+        'success': result?['success'] ?? false,
+        'message': result?['message'] ?? 'Unknown error',
+      });
+    } catch (e) {
+      return MapxusMethodResponse.fromMap({
+        'success': false,
+        'message': e.toString(),
+      });
+    }
+  }
+
+  /// Stores the raw Dart callback handles on the native side so the foreground
+  /// service can start a headless Flutter engine when the app is closed.
+  @override
+  Future<MapxusMethodResponse> setBackgroundHandlerRaw({
+    required int dispatcherHandle,
+    required int userCallbackHandle,
+  }) async {
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'setBackgroundHandler',
+        {
+          'dispatcherHandle': dispatcherHandle,
+          'userCallbackHandle': userCallbackHandle,
+        },
+      );
+      return MapxusMethodResponse.fromMap({
+        'success': result?['success'] ?? false,
+        'message': result?['message'] ?? 'Unknown error',
+      });
+    } catch (e) {
+      return MapxusMethodResponse.fromMap({
+        'success': false,
+        'message': e.toString(),
+      });
+    }
+  }
+
+  @override
+  Future<bool> isForegroundServiceRunning() async {
+    return await _channel.invokeMethod<bool>('isForegroundServiceRunning') ?? false;
+  }
+
   /// Listens to event streams from the native side.
   ///
   /// Provides continuous updates, such as location changes,
