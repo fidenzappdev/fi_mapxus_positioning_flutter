@@ -18,6 +18,7 @@ A Flutter plugin for Mapxus indoor positioning services. This plugin provides re
 - 📊 **JSON Format**: Modern JSON-based event structure for better data handling
 - 🧭 **Orientation Support**: Device orientation changes with accuracy information
 - 🔄 **Backward Compatible**: Legacy string format still supported alongside new typed events
+- 🔔 **Foreground Service**: Optional Android foreground service that keeps positioning alive after the app is closed
 
 ## Installation
 
@@ -57,6 +58,18 @@ Add the following permissions to your `android/app/src/main/AndroidManifest.xml`
 ```
 
 For Android 6.0+, make sure to request location permissions at runtime.
+
+#### Foreground Service (optional — for background positioning)
+
+If you intend to use the foreground service, add these additional permissions:
+
+```xml
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+```
+
+> These permissions are already declared in the plugin's own manifest and will be merged automatically. You only need to add them to your app manifest if you want to make them visible to Lint or if your project requires explicit declaration.
 
 > **ProGuard/R8 Note**: This plugin automatically includes the necessary ProGuard rules for release builds. No additional configuration is required!
 
@@ -308,6 +321,63 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
 ```
 
+### Foreground Service (Background Positioning)
+
+The foreground service keeps positioning alive even after the user fully closes the app (swipes from recents). To also **run Dart code** while the app is closed (e.g. upload to an API), register a background handler.
+
+#### Step 1 — Define a top-level background handler
+
+```dart
+// Must be a top-level function (not inside a class).
+// @pragma prevents tree-shaking in release builds.
+@pragma('vm:entry-point')
+Future<void> onBackgroundLocation(MapxusEvent event) async {
+  if (event is MapxusLocationEvent) {
+    debugPrint('BG: lat=${event.latitude}, lng=${event.longitude}');
+    // Upload to your API, save to local DB, etc.
+    await MyApi.uploadLocation(event.latitude, event.longitude);
+  }
+}
+```
+
+#### Step 2 — Register the handler and start the service
+
+```dart
+final mapxus = MapxusPositioningFlutter.instance;
+
+// Register background handler BEFORE starting the service.
+await mapxus.setBackgroundHandler(onBackgroundLocation);
+
+// Start the foreground service (shows a persistent notification).
+await mapxus.startForegroundService(
+  appId: 'YOUR_APP_ID',
+  secret: 'YOUR_SECRET',
+  notificationTitle: 'Indoor Positioning',
+  notificationContent: 'Tracking your location in the background',
+);
+```
+
+#### Step 3 — Listen while the app is open
+
+```dart
+// While the app is open, events also arrive here as usual.
+mapxus.events.listen((MapxusEvent event) {
+  if (event is MapxusLocationEvent) {
+    setState(() => latestLocation = event);
+  }
+});
+```
+
+#### Step 4 — Stop when done
+
+```dart
+await mapxus.stopForegroundService();
+```
+
+> **How it works when the app is closed:** A headless Flutter engine is started inside the foreground service. Each location event invokes your `onBackgroundLocation` function in that engine, so full async Dart code (HTTP calls, database writes, etc.) works normally.
+
+> **Android permissions required at runtime**: `ACCESS_FINE_LOCATION` (and `POST_NOTIFICATIONS` on Android 13+). Request these before calling `startForegroundService`.
+
 ## API Reference
 
 ### Methods
@@ -346,6 +416,23 @@ Resumes a paused positioning service.
 Stops the positioning service completely.
 
 - **Returns:** `Future<bool?>` - `true` if positioning stopped successfully
+
+#### `MapxusPositioning.startForegroundService({required appId, required secret, notificationTitle, notificationContent})`
+
+Starts an Android foreground service that keeps indoor positioning active even after the user closes the app. Events are delivered through the same `events` stream so no extra listener setup is needed.
+
+- **Parameters:**
+    - `appId`: Your Mapxus application ID
+    - `secret`: Your Mapxus application secret
+    - `notificationTitle` *(optional)*: Title shown in the persistent notification (default: `"Mapxus Positioning"`)
+    - `notificationContent` *(optional)*: Body text of the persistent notification (default: `"Location tracking is active"`)
+- **Returns:** `Future<MapxusMethodResponse>`
+
+#### `MapxusPositioning.stopForegroundService()`
+
+Stops the foreground service and removes the persistent notification.
+
+- **Returns:** `Future<MapxusMethodResponse>`
 
 ### Streams
 
