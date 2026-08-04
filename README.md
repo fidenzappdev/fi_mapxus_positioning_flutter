@@ -177,8 +177,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void init() async {
     await mapxus.init(
-        "6f772bc659464f988cbe8ecb7faa4a5b",
-        "47ae5790d3024f83a81c12e78966427a"
+        "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     );
   }
 
