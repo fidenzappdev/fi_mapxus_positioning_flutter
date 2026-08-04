@@ -26,7 +26,7 @@ Add this plugin to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mapxus_positioning_flutter: ^1.0.6
+  mapxus_positioning_flutter: ^1.0.11
 ```
 
 Then run:
@@ -345,6 +345,14 @@ Future<void> onBackgroundLocation(MapxusEvent event) async {
 ```dart
 final mapxus = MapxusPositioningFlutter.instance;
 
+// Some OEMs (Transsion/Tecno/Infinix, Xiaomi, etc.) kill foreground services
+// running in the background unless the app is exempt from battery
+// optimizations, regardless of the service's own manifest flags. Ask before
+// starting the service so the service can actually stay alive.
+if (!await mapxus.isIgnoringBatteryOptimizations()) {
+  await mapxus.requestIgnoreBatteryOptimizations();
+}
+
 // Register background handler BEFORE starting the service.
 await mapxus.setBackgroundHandler(onBackgroundLocation);
 
@@ -356,6 +364,8 @@ await mapxus.startForegroundService(
   notificationContent: 'Tracking your location in the background',
 );
 ```
+
+> **OEM battery restrictions**: On some devices (e.g. Transsion's Tecno/Infinix/itel "Security Center", Xiaomi's MIUI) the system's standard battery-optimization exemption dialog above isn't enough — the OEM also has a separate "Autostart" / "Protected apps" toggle in its own security app that must be enabled manually by the user for the foreground service to survive being backgrounded.
 
 #### Step 3 — Listen while the app is open
 
@@ -433,6 +443,18 @@ Starts an Android foreground service that keeps indoor positioning active even a
 Stops the foreground service and removes the persistent notification.
 
 - **Returns:** `Future<MapxusMethodResponse>`
+
+#### `MapxusPositioning.isIgnoringBatteryOptimizations()`
+
+Checks whether the app is already exempt from Android battery optimizations.
+
+- **Returns:** `Future<bool>` - `true` if the app is exempt
+
+#### `MapxusPositioning.requestIgnoreBatteryOptimizations()`
+
+Prompts the user with the system dialog to exempt the app from battery optimizations. Call this before `startForegroundService` on devices where the service keeps getting killed and restarted.
+
+- **Returns:** `Future<bool>` - `true` if the app was already exempt (no dialog shown); `false` when the dialog was launched — re-check with `isIgnoringBatteryOptimizations()` afterwards to see the user's choice.
 
 ### Streams
 
@@ -576,6 +598,11 @@ Check out the [example app](example/) for a complete implementation showing:
     - Ensure you're using the latest plugin version
     - Use typed `eventStream` instead of legacy `positionStream` for better error handling
     - Check that JSON events are properly formatted
+
+5. **Foreground service stops and restarts on its own**
+
+    - Call `requestIgnoreBatteryOptimizations()` before `startForegroundService` (see [Foreground Service](#foreground-service-background-positioning))
+    - On Transsion (Tecno/Infinix/itel) and Xiaomi devices, also enable "Autostart"/"Protected apps" for your app in the device's own security/battery app — the standard Android battery dialog alone is often not enough on these OEMs
 
 ## Platform Support
 
