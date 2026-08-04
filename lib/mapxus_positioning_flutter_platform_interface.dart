@@ -45,6 +45,16 @@ abstract class MapxusPositioningFlutterPlatform extends PlatformInterface {
   /// Use this on app startup to restore UI state after the app was killed.
   Future<bool> isForegroundServiceRunning();
 
+  /// Returns true if the app is already exempt from Android battery
+  /// optimizations. Some OEMs kill foreground services otherwise.
+  Future<bool> isIgnoringBatteryOptimizations();
+
+  /// Prompts the user with the system dialog to exempt the app from battery
+  /// optimizations. Returns true if the app was already exempt (no dialog
+  /// shown); returns false when the dialog was launched — the user's choice
+  /// isn't observable, so re-check with [isIgnoringBatteryOptimizations].
+  Future<bool> requestIgnoreBatteryOptimizations();
+
   /// Stores the raw Dart callback handles so the Android foreground service
   /// can start a headless Flutter engine and call the developer's handler.
   Future<MapxusMethodResponse> setBackgroundHandlerRaw({

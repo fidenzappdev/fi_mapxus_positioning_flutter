@@ -102,6 +102,10 @@ public class MapxusPositioningForegroundService extends Service implements Lifec
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
     private String pendingAppId, pendingSecret, pendingTitle, pendingContent;
+    /** Pending debounced retry, if any — cancelled/replaced on every new onAvailable(). */
+    private Runnable pendingRetry;
+    /** Debounce window so rapid connect/disconnect flapping doesn't spam start() calls. */
+    private static final long RETRY_DEBOUNCE_MS = 2000;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Event Listener Interface
@@ -136,18 +140,37 @@ public class MapxusPositioningForegroundService extends Service implements Lifec
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(@NonNull Network network) {
-                // Only retry when the client was actually torn down after a real start
-                // failure (see the catch block in startPositioning()) — NOT merely
-                // because positioningActive is momentarily false. positioningActive
-                // also goes false on normal indoor→outdoor transitions ("Out of Mapxus
-                // indoor service"), which is routine SDK behavior, not a failure. Tying
-                // the retry to that flag caused the service to restart the client every
-                // time the SDK briefly lost an indoor fix, even while fully online.
-                if (positioningClient == null && pendingAppId != null && pendingSecret != null) {
-                    Log.d(TAG, "Network available — retrying foreground positioning start");
-                    retryHandler.post(() ->
-                            startPositioning(pendingAppId, pendingSecret, pendingTitle, pendingContent));
+                if (pendingAppId == null || pendingSecret == null) return;
+
+                // Debounce: onAvailable() can fire repeatedly in quick succession
+                // (network flapping, WiFi/cellular handoff, routine revalidation).
+                // Cancel any pending retry and schedule a fresh one so a burst of
+                // connect/disconnect events collapses into a single resume attempt
+                // instead of restarting the client on every blip.
+                if (pendingRetry != null) {
+                    retryHandler.removeCallbacks(pendingRetry);
                 }
+
+                pendingRetry = () -> {
+                    pendingRetry = null;
+                    if (positioningClient == null) {
+                        // No client (real start failure or never started) — rebuild it.
+                        Log.d(TAG, "Network available — starting foreground positioning");
+                        startPositioning(pendingAppId, pendingSecret, pendingTitle, pendingContent);
+                    } else if (!positioningActive) {
+                        // Client exists but the SDK isn't running (e.g. it stopped
+                        // internally when connectivity dropped) — resume it in place
+                        // rather than tearing it down and rebuilding, so the service
+                        // keeps running continuously without a visible restart.
+                        Log.d(TAG, "Network available — resuming existing positioning client");
+                        try {
+                            positioningClient.start();
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to resume positioning client: " + e.getMessage());
+                        }
+                    }
+                };
+                retryHandler.postDelayed(pendingRetry, RETRY_DEBOUNCE_MS);
             }
         };
 
@@ -281,6 +304,7 @@ public class MapxusPositioningForegroundService extends Service implements Lifec
                 Log.e(TAG, "Failed to unregister network callback: " + e.getMessage());
             }
         }
+        pendingRetry = null;
         retryHandler.removeCallbacksAndMessages(null);
         stopPositioning();
         if (eventListener != null) {
@@ -329,7 +353,20 @@ public class MapxusPositioningForegroundService extends Service implements Lifec
     // Positioning Logic
     // ─────────────────────────────────────────────────────────────────────────
 
+    /** Guards against duplicate ACTION_START intents fired back-to-back (seen as a
+     *  spurious "stop and restart" — each duplicate call re-runs startForeground()
+     *  and re-touches the notification/lifecycle even though nothing changed). */
+    private long lastStartPositioningCallMs = 0;
+    private static final long START_DEBOUNCE_MS = 800;
+
     private void startPositioning(String appId, String secret, String title, String content) {
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastStartPositioningCallMs < START_DEBOUNCE_MS) {
+            Log.d(TAG, "Ignoring duplicate startPositioning() call within debounce window");
+            return;
+        }
+        lastStartPositioningCallMs = now;
+
         createNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification(
                 title   != null ? title   : "Mapxus Positioning",

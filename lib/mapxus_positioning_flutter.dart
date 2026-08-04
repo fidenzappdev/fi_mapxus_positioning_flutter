@@ -174,5 +174,23 @@ class MapxusPositioningFlutter {
   Future<bool> isForegroundServiceRunning() =>
       _platform.isForegroundServiceRunning();
 
+  /// Returns `true` if the app is already exempt from Android battery
+  /// optimizations. Some OEMs (Transsion/Tecno/Infinix, Xiaomi, etc.) kill
+  /// the foreground service in the background regardless of manifest flags
+  /// unless the app is explicitly whitelisted.
+  Future<bool> isIgnoringBatteryOptimizations() =>
+      _platform.isIgnoringBatteryOptimizations();
+
+  /// Prompts the user with the system "ignore battery optimizations" dialog.
+  ///
+  /// Call this (e.g. right after [startForegroundService]) on devices where
+  /// the foreground service keeps getting killed and restarted. Returns
+  /// `true` if the app was already exempt (no dialog shown); returns `false`
+  /// when the dialog was launched — re-check with
+  /// [isIgnoringBatteryOptimizations] afterwards since the user's choice
+  /// isn't returned directly.
+  Future<bool> requestIgnoreBatteryOptimizations() =>
+      _platform.requestIgnoreBatteryOptimizations();
+
   Stream<MapxusEvent> get events => _platform.events;
 }

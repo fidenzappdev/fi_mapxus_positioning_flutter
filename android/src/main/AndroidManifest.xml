@@ -14,6 +14,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <!-- Required on Android 13+ (API 33+) to post the foreground notification -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Lets the app prompt the user to whitelist it from battery optimizations,
+         needed on OEMs (Transsion/Xiaomi/etc.) that kill foreground services
+         despite stopWithTask="false" and foregroundServiceType="location" -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application>
         <!--
