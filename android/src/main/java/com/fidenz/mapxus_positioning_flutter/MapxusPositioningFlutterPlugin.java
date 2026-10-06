@@ -219,6 +219,12 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
             case "isForegroundServiceRunning":
                 handleIsForegroundServiceRunning(result);
                 break;
+            case "isIgnoringBatteryOptimizations":
+                handleIsIgnoringBatteryOptimizations(result);
+                break;
+            case "requestIgnoreBatteryOptimizations":
+                handleRequestIgnoreBatteryOptimizations(result);
+                break;
             default:
                 result.notImplemented();
         }
@@ -422,6 +428,41 @@ public class MapxusPositioningFlutterPlugin implements FlutterPlugin, MethodChan
                 "mapxus_fg_service_prefs", Context.MODE_PRIVATE);
         boolean running = prefs.getString(MapxusPositioningForegroundService.EXTRA_APP_ID, null) != null;
         result.success(running);
+    }
+
+    /**
+     * Many OEMs (Transsion/Tecno/Infinix, Xiaomi, etc.) kill foreground services
+     * that still count against battery optimization, regardless of
+     * stopWithTask/foregroundServiceType. Whitelisting the app via the standard
+     * "ignore battery optimizations" system dialog is the only reliable way to
+     * keep the service alive on those devices.
+     */
+    private void handleIsIgnoringBatteryOptimizations(@NonNull MethodChannel.Result result) {
+        android.os.PowerManager powerManager =
+                (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean ignoring = powerManager != null
+                && powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+        result.success(ignoring);
+    }
+
+    private void handleRequestIgnoreBatteryOptimizations(@NonNull MethodChannel.Result result) {
+        try {
+            android.os.PowerManager powerManager =
+                    (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            if (powerManager != null && powerManager.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                result.success(true);
+                return;
+            }
+
+            Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(android.net.Uri.parse("package:" + context.getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            result.success(false);
+        } catch (Exception e) {
+            responseHelper.sendError(result, "BATTERY_OPTIMIZATION_REQUEST_FAILED",
+                    "Error requesting battery optimization exemption: " + e.getMessage());
+        }
     }
 
     private void handleStartForegroundService(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {

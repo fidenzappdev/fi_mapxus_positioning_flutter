@@ -142,6 +142,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _startForegroundService() async {
+    // Ask to be exempted from battery optimizations first — some OEMs kill
+    // the foreground service in the background otherwise, regardless of the
+    // manifest flags.
+    final ignoringBattery = await mapxus.isIgnoringBatteryOptimizations();
+    if (!ignoringBattery) {
+      await mapxus.requestIgnoreBatteryOptimizations();
+    }
+
     // Register background handler before starting the service.
     final handlerResult = await mapxus.setBackgroundHandler(onBackgroundLocation);
     if (!handlerResult.success) {

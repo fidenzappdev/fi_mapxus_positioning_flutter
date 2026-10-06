@@ -219,6 +219,16 @@ class MethodChannelMapxusPositioningFlutter extends MapxusPositioningFlutterPlat
     return await _channel.invokeMethod<bool>('isForegroundServiceRunning') ?? false;
   }
 
+  @override
+  Future<bool> isIgnoringBatteryOptimizations() async {
+    return await _channel.invokeMethod<bool>('isIgnoringBatteryOptimizations') ?? false;
+  }
+
+  @override
+  Future<bool> requestIgnoreBatteryOptimizations() async {
+    return await _channel.invokeMethod<bool>('requestIgnoreBatteryOptimizations') ?? false;
+  }
+
   /// Listens to event streams from the native side.
   ///
   /// Provides continuous updates, such as location changes,
